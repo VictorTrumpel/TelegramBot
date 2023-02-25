@@ -1,8 +1,8 @@
 require("dotenv").config();
 const { Configuration, OpenAIApi } = require('openai');
-const TelegramBot = require('node-telegram-bot-api');
+const { Telegraf } = require('telegraf');
 
-const telegramToken = process.env.TELEGRAM_TOKEN;
+console.log('Telegraf :>> ', Telegraf);
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY
@@ -10,7 +10,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-const telegramBot = new TelegramBot(telegramToken, { polling: true });
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
 const askChatGPT = async (message) => {
   const completion = await openai.createCompletion({
@@ -23,13 +23,16 @@ const askChatGPT = async (message) => {
   return completion.data.choices[0].text
 }
 
-const emptyReg = new RegExp();
+bot.on('message', async (ctx) => {
+  const { text } = ctx.update.message
 
-telegramBot.onText(emptyReg, async (msg) => {
-  const { text } = msg;  
+  ctx.sendChatAction('typing')
 
-  const chatId = msg.chat.id;
-  const response = await askChatGPT(text)
+  const response = await askChatGPT(text);
 
-  telegramBot.sendMessage(chatId, response);
+  ctx.sendChatAction('typing')
+
+  await ctx.reply(response)
 });
+
+bot.launch();
