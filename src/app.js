@@ -33,7 +33,6 @@ bot.on('message', async (ctx) => {
   ctx.sendChatAction('typing')
 
   interval = setInterval(() => {
-    console.log('isPending :>> ', isPending);
     if (isPending) {
       ctx.sendChatAction('typing')
     } else {
