@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@types/node": "^16.18.12",
+    "firebase": "^9.17.1",
     "node-telegram-bot-api": "^0.61.0",
     "nodemon": "^2.0.20",
     "openai": "^3.1.0",

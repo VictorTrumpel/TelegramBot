@@ -2,7 +2,7 @@ require("dotenv").config();
 const { askChatGPT } = require('./askChatGpt');
 const { getInvoice } = require('./getInvoice');
 const { Telegraf } = require('telegraf');
-const { jsonDB } = require('./JsonDB')
+const { userCRUD } = require('./UserCRUD')
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
@@ -21,7 +21,7 @@ bot.on('message', async (ctx) => {
   const { id } = from
 
   if (text === '/start') {
-    await jsonDB.createUserById(id)
+    await userCRUD.createUserById(id)
 
     await ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
 
@@ -40,13 +40,20 @@ bot.on('message', async (ctx) => {
     }
   }, 1000)
 
-  const hasAccess = jsonDB.hasUserAcces(id)
+  const user = await userCRUD.getUserById(id)
 
-  if (!hasAccess) {
+  if (!user)
+    return ctx.reply("Пользователь не найден")
+
+  if (!user.hasAccess()) {
     return ctx.replyWithInvoice(getInvoice(ctx.from.id))
   }
 
-  const response = await askChatGPT(text);
+  user.trialMessageCount -= 1
+
+  await userCRUD.updateUser(user)
+
+  const response = await askChatGPT(text)
 
   isPending = false
   clearInterval(interval)
