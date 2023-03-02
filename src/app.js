@@ -2,22 +2,14 @@ require("dotenv").config();
 const { askChatGPT } = require('./askChatGpt');
 const { getInvoice } = require('./getInvoice');
 const { Telegraf } = require('telegraf');
-const { userCRUD } = require('./UserCRUD')
+const { userCRUD } = require('./UserCRUD');
 
-const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
-bot.hears('pay', (ctx) => ctx.replyWithInvoice(getInvoice(ctx.from.id)));
-
-bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true));
-
-bot.on('succesful_payment', async (ctx) => ctx.reply('SuccessfulPayment'));
-
-let isPending = false
-
-let interval = null
+bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true))
 
 bot.on('message', async (ctx) => {
-  const { text, from } = ctx.update.message
+  const { text, from, successful_payment } = ctx.update.message
   const { id } = from
 
   if (text === '/start') {
@@ -28,22 +20,17 @@ bot.on('message', async (ctx) => {
     return
   }
 
-  isPending = true
+  if (successful_payment) {
+    const user = await userCRUD.getUserById(id)
 
-  ctx.sendChatAction('typing')
+    user.updateLastPayment()
 
-  interval = setInterval(() => {
-    if (isPending) {
-      ctx.sendChatAction('typing')
-    } else {
-      clearInterval(interval)
-    }
-  }, 1000)
+    await userCRUD.updateUser(user)
+    
+    return ctx.reply("Оплата прошла успешно!")
+  }
 
   const user = await userCRUD.getUserById(id)
-
-  if (!user)
-    return ctx.reply("Пользователь не найден")
 
   if (!user.hasAccess()) {
     return ctx.replyWithInvoice(getInvoice(ctx.from.id))
@@ -55,10 +42,17 @@ bot.on('message', async (ctx) => {
 
   const response = await askChatGPT(text)
 
-  isPending = false
-  clearInterval(interval)
-
   await ctx.reply(response)
-});
+})
 
-bot.launch();
+bot.launch()
+
+
+// ctx.sendChatAction('typing')
+// interval = setInterval(() => {
+//   if (isPending) {
+//     ctx.sendChatAction('typing')
+//   } else {
+//     clearInterval(interval)
+//   }
+// }, 1000)

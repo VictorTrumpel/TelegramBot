@@ -1,7 +1,7 @@
 class SubDate {
   #SUB_DAYS = 30
 
-  getDate() {
+  getMDYNow() {
     const date = new Date()
 
     const day = date.getDate()
@@ -15,7 +15,7 @@ class SubDate {
     if (!date)
       return false
 
-    const nowDate = this.getDate(new Date())
+    const nowDate = this.getMDYNow(new Date())
 
     const days = this.getBetweenDays(date, nowDate)
 

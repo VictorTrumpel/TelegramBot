@@ -1,5 +1,7 @@
 const SubDate = require('./SubDate');
 
+const subDate = new SubDate()
+
 class User {
   constructor({ 
     id = 0, 
@@ -20,11 +22,16 @@ class User {
       this._trialMessageCount = count
   }
 
+  updateLastPayment() {
+    const date = subDate.getMDYNow()
+    this.lastPaymentDate = date
+  }
+
   hasAccess() {
     if (this.trialMessageCount > 0) 
       return true
 
-    return new SubDate().isSubActual(this.lastPaymentDate)
+    return subDate.isSubActual(this.lastPaymentDate)
   }
 
   getInfo() {
