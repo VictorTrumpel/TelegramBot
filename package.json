@@ -5,6 +5,7 @@
   "dependencies": {
     "@types/node": "^16.18.12",
     "node-telegram-bot-api": "^0.61.0",
+    "nodemon": "^2.0.20",
     "openai": "^3.1.0",
     "react-scripts": "5.0.1",
     "telegraf": "^4.11.2"

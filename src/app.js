@@ -1,32 +1,32 @@
 require("dotenv").config();
-const { Configuration, OpenAIApi } = require('openai');
+const { askChatGPT } = require('./askChatGpt');
+const { getInvoice } = require('./getInvoice');
 const { Telegraf } = require('telegraf');
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const openai = new OpenAIApi(configuration);
+const { jsonDB } = require('./JsonDB')
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
-const askChatGPT = async (message) => {
-  const completion = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: message,
-    temperature: 0.6,
-    max_tokens: 2000
-  })
+bot.hears('pay', (ctx) => ctx.replyWithInvoice(getInvoice(ctx.from.id)));
 
-  return completion.data.choices[0].text
-}
+bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true));
+
+bot.on('succesful_payment', async (ctx) => ctx.reply('SuccessfulPayment'));
 
 let isPending = false
 
 let interval = null
 
 bot.on('message', async (ctx) => {
-  const { text } = ctx.update.message
+  const { text, from } = ctx.update.message
+  const { id } = from
+
+  if (text === '/start') {
+    await jsonDB.createUserById(id)
+
+    await ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
+
+    return
+  }
 
   isPending = true
 
@@ -39,6 +39,12 @@ bot.on('message', async (ctx) => {
       clearInterval(interval)
     }
   }, 1000)
+
+  const hasAccess = jsonDB.hasUserAcces(id)
+
+  if (!hasAccess) {
+    return ctx.replyWithInvoice(getInvoice(ctx.from.id))
+  }
 
   const response = await askChatGPT(text);
 
