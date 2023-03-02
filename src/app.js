@@ -30,6 +30,11 @@ bot.on('message', async (ctx) => {
     return ctx.reply("Оплата прошла успешно!")
   }
 
+  ctx.sendChatAction('typing')
+  const interval = setInterval(() => {
+    ctx.sendChatAction('typing')
+  }, 5000)
+
   const user = await userCRUD.getUserById(id)
 
   if (!user.hasAccess()) {
@@ -41,6 +46,8 @@ bot.on('message', async (ctx) => {
   await userCRUD.updateUser(user)
 
   const response = await askChatGPT(text)
+
+  clearInterval(interval)
 
   await ctx.reply(response)
 })
