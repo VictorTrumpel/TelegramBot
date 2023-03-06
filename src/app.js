@@ -37,7 +37,13 @@ bot.on('message', async (ctx) => {
 
   const user = await userCRUD.getUserById(id)
 
+  if (!user) {
+    clearInterval(interval)
+    return await ctx.reply('Нужно перезапустить бота, отправьте текст "/start"')
+  }
+
   if (!user.hasAccess()) {
+    clearInterval(interval)
     return ctx.replyWithInvoice(getInvoice(ctx.from.id))
   }
 
