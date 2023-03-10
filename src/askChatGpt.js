@@ -9,10 +9,10 @@ const openai = new OpenAIApi(configuration);
 
 const askChatGPT = async (message) => {
   const completion = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: process.env.GPT_MODE,
     prompt: message,
-    temperature: 0.6,
-    max_tokens: 2000
+    temperature: Number(process.env.TEMPERATURE),
+    max_tokens: Number(process.env.MAX_RESPONSE_TOKENS)
   })
 
   return completion.data.choices[0].text
