@@ -2,7 +2,7 @@ const { userCRUD } = require('./UserCRUD');
 const { getInvoice } = require('./getInvoice');
 const GPTAnswerStream = require('./GPTAnswerStream');
 
-const MAX_BUFFER_MESSAGE_LENGTH = 200 
+const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
 
 class MessageContext {
   #text = ''
