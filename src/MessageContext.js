@@ -1,6 +1,6 @@
 const { userCRUD } = require('./UserCRUD');
 const { getInvoice } = require('./getInvoice');
-const GPTAnswerStream = require('./GPTAnswerStream');
+const GPTAnswerStream = require('./GptConnection/GptStream');
 
 const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
 

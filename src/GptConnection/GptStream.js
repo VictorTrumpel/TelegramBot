@@ -1,4 +1,4 @@
-class GPTAnswerStream {
+class GptStream {
 
   #handleChankMessage = (chunkMessage = '') => undefined
   #handleFinisMessage = () => undefined
@@ -57,4 +57,4 @@ class GPTAnswerStream {
   }
 }
 
-module.exports = GPTAnswerStream
+module.exports = GptStream

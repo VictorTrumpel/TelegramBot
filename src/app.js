@@ -1,35 +1,65 @@
+'use strict'
+
 require("dotenv").config();
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const { userCRUD } = require('./UserCRUD');
-const MessageContext = require('./MessageContext')
+const GptServer = require('./GptConnection/GptStreamConnection');
+const MessageContext = require('./MessageContext');
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true))
 
+bot.action('action', () => {
+  
+  console.log('GENER')
+})
+
 bot.on('message', async (ctx) => {
   const { text, from, successful_payment } = ctx.update.message
   const { id } = from
 
-  if (text === '/start') {
-    await userCRUD.createUserById(id)
+  // ctx.reply('прервать?', {
+  //   reply_markup: {
+  //     resize_keyboard: true,
+  //     inline_keyboard: [[{
+  //       text: 'Получить ответ',
+  //       callback_data: 'action'
+  //     }]]
+  //   }
+  // })
 
-    await ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
+  const gptServer = new GptServer()
 
-    return
+  gptServer.onMessage = (message) => {
+    console.log('message :>> ', message)
+    // ctx.reply(message)
   }
 
-  if (successful_payment) {
-    const user = await userCRUD.getUserById(id)
+  await gptServer.ask(text)
 
-    user.updateLastPayment()
+  
+  // if (text === '/start') {
+  //   await userCRUD.createUserById(id)
 
-    await userCRUD.updateUser(user)
+  //   await ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
+
+  //   return
+  // }
+
+  // if (successful_payment) {
+  //   const user = await userCRUD.getUserById(id)
+
+  //   user.updateLastPayment()
+
+  //   await userCRUD.updateUser(user)
     
-    return ctx.reply("Оплата прошла успешно!")
-  }
+  //   return ctx.reply("Оплата прошла успешно!")
+  // }
 
-  new MessageContext(ctx)
+  // new MessageContext(ctx)
 })
+
+
 
 bot.launch()

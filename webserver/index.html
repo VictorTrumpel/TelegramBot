@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <title>Моя первая страница</title>
+  </head>
+  <body>
+    <h1>SERVER FOR TEST</h1>
+    <div id="chat-box"></div>
+    <input id="chat-input" type="text">
+  </body>
+  <script>
+    'use strict'
+  
+    const CHAR_ENTER = 13
+  
+    const socket = new WebSocket('ws://127.0.0.1:8000/')
+  
+    const chatBox = document.getElementById('chat-box')
+    const chatInput = document.getElementById('chat-input')
+  
+    chatInput.focus()
+  
+    const writeLine = (text) => {
+      const line = document.createElement('div')
+      line.innerText = text
+      chatBox.append(line)
+    }
+  
+    socket.onopen = () => {
+      writeLine('connected')
+    }
+  
+    socket.onclose = () => {
+      writeLine('closed')
+    }
+  
+    socket.onmessage = (event) => {
+      writeLine(event.data)
+    }
+  
+    chatInput.addEventListener('keydown', (event) => {
+      if (event.keyCode === CHAR_ENTER) {
+        const string = chatInput.value
+        chatInput.value = ''
+        writeLine(string)
+        socket.send(string)
+      }
+    })
+  
+  </script>
+</html>
