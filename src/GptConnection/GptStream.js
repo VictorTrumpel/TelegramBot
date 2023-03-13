@@ -1,7 +1,11 @@
-class GPTAnswerStream {
+'use strict'
 
-  #handleChankMessage = (chunkMessage = '') => undefined
-  #handleFinisMessage = () => undefined
+const EventEmitter = require('../EventEmitter')
+class GptStream {
+  #eventEmitter = new EventEmitter()
+
+  #chunkMessageEvent = 'message'
+  #resolveStream = 'resolve'
 
   async ask(message = '') {
     const response = await fetch(process.env.GPT_API_URL, {
@@ -25,14 +29,14 @@ class GPTAnswerStream {
         const { value } = await reader.read()
 
         if (!value) {
-          this.#handleFinisMessage()
+          this.#eventEmitter.emit(this.#resolveStream)
           return 
         }
   
         const jsonString = Buffer.from(value).toString('utf8').split('data: ')[1]
   
         if (jsonString.trim() === '[DONE]') {
-          this.#handleFinisMessage()
+          this.#eventEmitter.emit(this.#resolveStream)
           return
         }
   
@@ -40,21 +44,21 @@ class GPTAnswerStream {
     
         const chunkMessage = parsedData.choices?.[0]?.delta?.content
   
-        this.#handleChankMessage(chunkMessage)
+        this.#eventEmitter.emit(this.#chunkMessageEvent, chunkMessage)
       } catch {
-        this.#handleFinisMessage()
+        this.#eventEmitter.emit(this.#resolveStream)
         return 
       }
     }
   }
 
   onChankMessage(cb = (chunkMessage = '') => undefined) {
-    this.#handleChankMessage = cb
+    this.#eventEmitter.on(this.#chunkMessageEvent, cb)
   } 
 
-  onEnd(cb = () => undefined) {
-    this.#handleFinisMessage = cb
+  onResolve(cb = () => undefined) {
+    this.#eventEmitter.on(this.#resolveStream, cb)
   }
 }
 
-module.exports = GPTAnswerStream
+module.exports = GptStream

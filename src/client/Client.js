@@ -1,10 +1,10 @@
-const { userCRUD } = require('./UserCRUD');
-const { getInvoice } = require('./getInvoice');
-const GPTAnswerStream = require('./GPTAnswerStream');
+const { userCRUD } = require('../database/UserCRUD');
+const { getInvoice } = require('../getInvoice');
+const GptConnection = require('../GptConnection/GptConnection')
 
 const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
 
-class MessageContext {
+class Client {
   #text = ''
   #userId = NaN
 
@@ -57,6 +57,24 @@ class MessageContext {
 
     this.#ctx.sendChatAction('typing')
 
+    if (this.#text === '/start') {
+      await userCRUD.createUserById(this.#userId)
+  
+      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
+  
+      return
+    }
+
+    if (this.#ctx.update.message.successful_payment) {
+      const user = await userCRUD.getUserById(this.#userId)
+  
+      user.updateLastPayment()
+  
+      await userCRUD.updateUser(user)
+      
+      return this.#ctx.reply("Оплата прошла успешно!")
+    }
+
     const user = await userCRUD.getUserById(this.#userId)
 
     if (!user) {
@@ -75,14 +93,14 @@ class MessageContext {
 
     await userCRUD.updateUser(user)
 
-    const gptStream = new GPTAnswerStream()
+    const gptStream = await new GptConnection().createConnection()
 
     gptStream.ask(this.#text)
 
     gptStream.onChankMessage(this.handleMessage)
 
-    gptStream.onEnd(this.handleEndMessage)
+    gptStream.onResolve(this.handleEndMessage)
   }
 }
 
-module.exports = MessageContext
+module.exports = Client
