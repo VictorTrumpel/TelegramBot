@@ -24,9 +24,9 @@ ws.on('connection', async (connection, req) => {
 
   const gptConnection = await new GptConnection().createConnection()
 
-  console.log('gptConnection :>> ', gptConnection);
+  // console.log('gptConnection :>> ', gptConnection);
 
-  gptConnection.ask('Расскажи сказку на 100 символов')
+  gptConnection.ask('Расскажи сказку')
 
   gptConnection.onChankMessage((message) => {
     connection.send(message)
@@ -44,5 +44,15 @@ ws.on('connection', async (connection, req) => {
 
   connection.on('close', () => {
     // console.log(`Disconnected ${ip}`)
+  })
+
+  connection.on('message', (message) => {
+    const stringMessage = Buffer.from(message).toString('utf8')
+
+    console.log('stringMessage :>> ', stringMessage);
+    
+    if (stringMessage === 'abort-gpt-stream') {
+      gptConnection.abort()
+    }
   })
 })

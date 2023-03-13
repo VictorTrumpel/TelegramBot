@@ -4,31 +4,36 @@ const EventEmitter = require('../EventEmitter')
 class GptStream {
   #eventEmitter = new EventEmitter()
 
+  #isAborting = false
+
+  #abortFetching = new AbortController()
+
   #chunkMessageEvent = 'message'
   #resolveStream = 'resolve'
 
   async ask(message = '') {
-    const response = await fetch(process.env.GPT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: "user", content: message }],
-        temperature: 0.7,
-        stream: true
+    try {
+      const response = await fetch(process.env.GPT_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: "user", content: message }],
+          temperature: 0.7,
+          stream: true
+        }),
+        signal: this.#abortFetching.signal
       })
-    })
-
-    const reader = response.body.getReader()
-
-    while (true) {
-      try {
+  
+      const reader = response.body.getReader()
+  
+      while (true) {
         const { value } = await reader.read()
-
-        if (!value) {
+  
+        if (!value || this.#isAborting) {
           this.#eventEmitter.emit(this.#resolveStream)
           return 
         }
@@ -45,11 +50,18 @@ class GptStream {
         const chunkMessage = parsedData.choices?.[0]?.delta?.content
   
         this.#eventEmitter.emit(this.#chunkMessageEvent, chunkMessage)
-      } catch {
-        this.#eventEmitter.emit(this.#resolveStream)
-        return 
       }
+    } catch (error) {
+      console.error(error)
+      this.#eventEmitter.emit(this.#resolveStream)
+      return 
     }
+  }
+
+  abort() {
+    this.#isAborting = true
+    this.#abortFetching.abort()
+    this.#eventEmitter.emit(this.#resolveStream)
   }
 
   onChankMessage(cb = (chunkMessage = '') => undefined) {

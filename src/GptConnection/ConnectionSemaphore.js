@@ -1,15 +1,18 @@
 'use strict'
 
-const Queue = require('../Queue')
+const MapQueue = require('../MapQueue')
 
 const MAX_ACTIVE_STREAM = process.env.MAX_ACTIVE_GPT_CONNECTIONS
-
 class ConnectionSemaphore {
   static instance = null
 
-  #activeConnections = 0
+  /**
+    @key - connection id
+    @value - GptStream instance
+  */
+  #activeConnections = new Map()
 
-  #queueConnections = new Queue()
+  #queueConnections = new MapQueue()
 
   constructor() {
     if (ConnectionSemaphore.instance) {
@@ -19,7 +22,7 @@ class ConnectionSemaphore {
     ConnectionSemaphore.instance = this
   }
 
-  closeConnection() {
+  openNextConnection() {
     const openConnection = this.#queueConnections.shift()
 
     if (openConnection) {
@@ -32,15 +35,42 @@ class ConnectionSemaphore {
     }
   }
 
-  pushConnectionOpener(openConnection = () => undefined) {
-    if (this.#activeConnections === MAX_ACTIVE_STREAM) {
-      this.#queueConnections.push(openConnection)
+  deleteConnection(connectionId = '') {
+    const connection = this.#activeConnections.get(connectionId)
+
+    this.#activeConnections.delete(connectionId)
+
+    if (connection) {
+      connection.abort()
+    }
+
+    // коннекшен из очереди не нужно абортить потому что он не запущен
+    this.#queueConnections.delete(connectionId)
+  }
+
+  hasConnection(connectionId = '') {
+    const connection = this.#activeConnections.get(connectionId)
+    
+    if (connection)
+      return true
+
+    const queueConnection = this.#queueConnections.get(connectionId)
+
+    if (queueConnection)
+      return true
+
+    return false
+  }
+
+  pushConnectionOpener(connectionId = '', openConnection = () => undefined) {
+    if (this.#activeConnections.size === MAX_ACTIVE_STREAM) {
+      this.#queueConnections.push(connectionId, openConnection)
       return
     }
 
-    this.#activeConnections += 1
+    const connection = openConnection()
 
-    openConnection()
+    this.#activeConnections.set(connectionId, connection)
   }
 }
 
