@@ -2,7 +2,7 @@
 
 const MapQueue = require('../MapQueue')
 
-const MAX_ACTIVE_STREAM = 2 //process.env.MAX_ACTIVE_GPT_CONNECTIONS
+const MAX_ACTIVE_STREAM = process.env.MAX_ACTIVE_GPT_CONNECTIONS
 class ConnectionSemaphore {
   static instance = null
 
@@ -62,7 +62,7 @@ class ConnectionSemaphore {
     return false
   }
 
-  pushConnectionOpener(connectionId = '', openConnection = () => undefined) {
+  pushConnectionOpener(connectionId = '', openConnection = () => undefined) {    
     if (this.#activeConnections.size === MAX_ACTIVE_STREAM) {
       this.#queueConnections.push(connectionId, openConnection)
       return

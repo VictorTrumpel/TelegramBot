@@ -54,6 +54,8 @@ class Client {
   }
 
   async init() {
+    // тут пока что говно-код.
+
     this.isAnswerInProcess = true
 
     this.#ctx.sendChatAction('typing')
@@ -98,7 +100,13 @@ class Client {
     const hasConnection = connectionSemaphore.hasConnection(this.#userId)
 
     if (hasConnection) {
-      return this.#ctx.reply('Отправте "Стоп" для того, что бы остановить ответ.')
+      this.#ctx.reply('Отправте "Стоп" для того, что бы остановить ответ.')
+
+      setTimeout(() => {
+        this.#ctx.sendChatAction('typing')
+      }, 500)
+
+      return
     }
 
     user.trialMessageCount -= 1

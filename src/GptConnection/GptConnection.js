@@ -9,6 +9,10 @@ class GptConnection {
   }
 
   createConnection(connectionId = '') {
+    if (!connectionId) {
+      throw new Error('connectionId do not passed!')
+    }
+
     return new Promise((res) => {
       const stream = new GptStream()
 

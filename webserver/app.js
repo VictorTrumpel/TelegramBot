@@ -19,10 +19,14 @@ server.listen(8000, () => {
 
 const ws = new WebSocket.Server({ server })
 
+let id = 0
+
 ws.on('connection', async (connection, req) => {
   const ip = req.socket.remoteAddress
 
-  const gptConnection = await new GptConnection().createConnection()
+  id += 1
+
+  const gptConnection = await new GptConnection().createConnection(id)
 
   // console.log('gptConnection :>> ', gptConnection);
 
