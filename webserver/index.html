@@ -5,7 +5,10 @@
     <title>Моя первая страница</title>
   </head>
   <body>
-    <h1>SERVER FOR TEST</h1>
+    <h1>SERVER FOR TEST gdsgsg</h1>
+    <div>
+      <button id="abort-signal">abort signal</button>
+    </div>
     <div id="chat-box"></div>
     <input id="chat-input" type="text">
   </body>
@@ -18,8 +21,13 @@
   
     const chatBox = document.getElementById('chat-box')
     const chatInput = document.getElementById('chat-input')
+    const abortButton = document.getElementById('abort-signal')
   
     chatInput.focus()
+
+    abortButton.onclick = () => {
+      socket.send('abort-gpt-stream')
+    }
   
     const writeLine = (text) => {
       const line = document.createElement('div')

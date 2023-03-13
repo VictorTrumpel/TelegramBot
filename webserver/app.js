@@ -19,14 +19,18 @@ server.listen(8000, () => {
 
 const ws = new WebSocket.Server({ server })
 
+let id = 0
+
 ws.on('connection', async (connection, req) => {
   const ip = req.socket.remoteAddress
 
-  const gptConnection = await new GptConnection().createConnection()
+  id += 1
 
-  console.log('gptConnection :>> ', gptConnection);
+  const gptConnection = await new GptConnection().createConnection(id)
 
-  gptConnection.ask('Расскажи сказку на 100 символов')
+  // console.log('gptConnection :>> ', gptConnection);
+
+  gptConnection.ask('Расскажи сказку')
 
   gptConnection.onChankMessage((message) => {
     connection.send(message)
@@ -44,5 +48,15 @@ ws.on('connection', async (connection, req) => {
 
   connection.on('close', () => {
     // console.log(`Disconnected ${ip}`)
+  })
+
+  connection.on('message', (message) => {
+    const stringMessage = Buffer.from(message).toString('utf8')
+
+    console.log('stringMessage :>> ', stringMessage);
+    
+    if (stringMessage === 'abort-gpt-stream') {
+      gptConnection.abort()
+    }
   })
 })

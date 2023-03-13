@@ -1,24 +1,34 @@
 'use strict'
-const { connectionSemaphore } = require('./ConnectionSemaphore')
+const { connectionSemaphore } = require('./ConnectionSemaphore');
 const GptStream = require('./GptStream');
 
 class GptConnection {
-  #handleResolveStream = () => {
-    // тут будет реализована доп логика по остановке GptStream
-
-    connectionSemaphore.closeConnection()
+  #handleResolveStream = (connectionId = '') => {
+    connectionSemaphore.deleteConnection(connectionId)
+    connectionSemaphore.openNextConnection()
   }
 
-  createConnection() {
+  createConnection(connectionId = '') {
+    if (!connectionId) {
+      throw new Error('connectionId do not passed!')
+    }
+
     return new Promise((res) => {
       const stream = new GptStream()
 
-      stream.onResolve(this.#handleResolveStream)
+      stream.onResolve(() => this.#handleResolveStream(connectionId))
 
-      const openConnection = () => res(stream)
+      const openConnection = () => {
+        res(stream)
+        return stream
+      }
 
-      connectionSemaphore.pushConnectionOpener(openConnection)
+      connectionSemaphore.pushConnectionOpener(connectionId, openConnection)
     })
+  }
+
+  getConnection() {
+
   }
 }
 

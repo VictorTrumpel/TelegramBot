@@ -1,5 +1,6 @@
 const { userCRUD } = require('../database/UserCRUD');
 const { getInvoice } = require('../getInvoice');
+const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore')
 const GptConnection = require('../GptConnection/GptConnection')
 
 const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
@@ -53,6 +54,8 @@ class Client {
   }
 
   async init() {
+    // тут пока что говно-код.
+
     this.isAnswerInProcess = true
 
     this.#ctx.sendChatAction('typing')
@@ -60,7 +63,7 @@ class Client {
     if (this.#text === '/start') {
       await userCRUD.createUserById(this.#userId)
   
-      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос!')
+      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос! Для того, что бы остановить ответ, напши - "Стоп"')
   
       return
     }
@@ -89,11 +92,30 @@ class Client {
       )
     }
 
+    if (this.#text === 'Стоп' || this.#text === 'СТОП' || this.#text === 'стоп') {
+      connectionSemaphore.deleteConnection(this.#userId)
+      return this.#ctx.reply('Можешь задать следующий вопрос :)')
+    }
+
+    const hasConnection = connectionSemaphore.hasConnection(this.#userId)
+
+    if (hasConnection) {
+      this.#ctx.reply('Отправте "Стоп" для того, что бы остановить ответ.')
+
+      setTimeout(() => {
+        this.#ctx.sendChatAction('typing')
+      }, 500)
+
+      return
+    }
+
     user.trialMessageCount -= 1
 
     await userCRUD.updateUser(user)
 
-    const gptStream = await new GptConnection().createConnection()
+    const gptStream = await new GptConnection().createConnection(this.#userId)
+
+    console.log('gptStream :>> ', gptStream);
 
     gptStream.ask(this.#text)
 
