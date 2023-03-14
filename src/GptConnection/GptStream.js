@@ -1,6 +1,7 @@
 'use strict'
 
 const EventEmitter = require('../EventEmitter')
+const fetch = require('node-fetch')
 class GptStream {
   #eventEmitter = new EventEmitter()
 
