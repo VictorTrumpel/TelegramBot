@@ -17,16 +17,4 @@ bot.on('message', async (ctx) => {
   new Client(ctx)
 })
 
-// пример того как можно выводить кнопки к сообщению:
-// ctx.reply('прервать?', {
-//   reply_markup: {
-//     resize_keyboard: true,
-//     inline_keyboard: [[{
-//       text: 'Получить ответ',
-//       callback_data: 'action'
-//     }]]
-//   }
-// })
-
-
 bot.launch()
