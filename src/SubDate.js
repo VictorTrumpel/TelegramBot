@@ -11,6 +11,18 @@ class SubDate {
     return `${month}/${day}/${year}`
   }
 
+  getMDYHMSNow() {
+    const day = this.getMDYNow()
+
+    const date = new Date()
+
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
+    const seconds = date.getSeconds()
+
+    return `${day} ${hours}:${minutes}:${seconds}`
+  }
+
   isSubActual(date = '') {
     if (!date)
       return false
@@ -20,6 +32,17 @@ class SubDate {
     const days = this.getBetweenDays(date, nowDate)
 
     return days <= this.#SUB_DAYS
+  }
+
+  getBetweenMinutes(start = '', end = '') {
+    const date1 = new Date(start)
+    const date2 = new Date(end)
+
+    const differenceMS = date1 - date2
+
+    const differenceMinutes = differenceMS / (1000 * 60)
+
+    return differenceMinutes
   }
 
   getBetweenDays(start = '', end = '') { 

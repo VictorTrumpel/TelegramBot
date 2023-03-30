@@ -11,6 +11,8 @@ class Client {
 
   #ctx = {}
 
+  #userModel = null
+
   isAnswerInProcess = false
 
   #bufferMessage = ''
@@ -18,21 +20,27 @@ class Client {
   handleMessage = (message = '') => {
     this.#bufferMessage += message
 
-    if (this.#bufferMessage.length >= MAX_BUFFER_MESSAGE_LENGTH) {
-      this.#ctx.reply(this.#bufferMessage)
+    if (this.#bufferMessage.length >= MAX_BUFFER_MESSAGE_LENGTH) {     
+      const { reminder, release } = this.releaseBuffer(this.#bufferMessage) 
+
+      this.#bufferMessage = reminder
+
+      this.#ctx.reply(release)
+      this.#userModel.pushMemory(release)
+      userCRUD.updateUser(this.#userModel)
 
       // после того, как выполнится reply, если был статус 'typing' - он сбросится автоматически.
       // Сетаем его заново, т.к. ответ продолжает генериться, но с дилеем, иначе TG его не подхватит.
       setTimeout(() => {
         this.#ctx.sendChatAction('typing')
       }, 500)
-
-      this.#bufferMessage = ''
     }
   }
 
   handleEndMessage = () => {
     if (this.#bufferMessage) {
+      this.#userModel.pushMemory(this.#bufferMessage)
+      userCRUD.updateUser(this.#userModel)
       this.#ctx.reply(this.#bufferMessage)
     }
 
@@ -54,8 +62,6 @@ class Client {
   }
 
   async init() {
-    // тут пока что говно-код.
-
     this.isAnswerInProcess = true
 
     this.#ctx.sendChatAction('typing')
@@ -78,19 +84,10 @@ class Client {
       return this.#ctx.reply("Оплата прошла успешно!")
     }
 
-    const user = await userCRUD.getUserById(this.#userId)
+    this.#userModel = await this.autentificateUser(this.#userId)
 
-    if (!user) {
-      this.isAnswerInProcess = false
-      return this.#ctx.reply('Нужно перезапустить бота, отправьте текст "/start"')
-    }
-
-    if (!user.hasAccess()) {
-      this.isAnswerInProcess = false
-      return this.#ctx.replyWithInvoice(
-        getInvoice(this.#ctx.from.id)
-      )
-    }
+    if (!this.#userModel)
+      return
 
     if (this.#text === 'Стоп' || this.#text === 'СТОП' || this.#text === 'стоп') {
       connectionSemaphore.deleteConnection(this.#userId)
@@ -109,19 +106,56 @@ class Client {
       return
     }
 
-    user.trialMessageCount -= 1
+    this.#userModel.trialMessageCount -= 1
+    this.#userModel.pushMemory(this.#text)
+    this.#userModel.updateLastQuestionDate()
 
-    await userCRUD.updateUser(user)
+    await userCRUD.updateUser(this.#userModel)
 
     const gptStream = await new GptConnection().createConnection(this.#userId)
 
-    console.log('gptStream :>> ', gptStream);
+    const textQuery = `${this.#userModel.conversationMemory}\n${this.text}`
 
-    gptStream.ask(this.#text)
+    gptStream.ask(textQuery)
 
     gptStream.onChankMessage(this.handleMessage)
 
     gptStream.onResolve(this.handleEndMessage)
+  }
+
+  async autentificateUser(userId = Number()) {
+    const user = await userCRUD.getUserById(userId)
+
+    if (!user) {
+      this.isAnswerInProcess = false
+      this.#ctx.reply('Нужно перезапустить бота, отправьте текст "/start"')
+      return null
+    }
+
+    if (!user.hasAccess()) {
+      this.isAnswerInProcess = false
+      this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
+      return null
+    }
+
+    return user
+  }
+
+  releaseBuffer(buffer = '') {
+    let releaseIdx = buffer.length - 1
+
+    for (let i = buffer.length - 1; i >= 0; i--) {
+      const char = buffer[i]
+      if (char === `\n` || char === ' ' || char === '   ') {
+        releaseIdx = i
+        break
+      }
+    }
+
+    const reminder = buffer.slice(releaseIdx)
+    const release  = buffer.slice(0, releaseIdx)
+
+    return { reminder, release } 
   }
 }
 

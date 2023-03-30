@@ -14,7 +14,7 @@ const db = getFirestore(app)
 class UserCRUD {
   #collectionName = "users"
 
-  async getUserById(id = 0) {
+  async getUserById(id = Number()) {
     const userRef = doc(db, this.#collectionName, `${id}`)
     const userResponse = await getDoc(userRef)
     const userInfo = userResponse.data()
