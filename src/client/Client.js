@@ -69,7 +69,7 @@ class Client {
     if (this.#text === '/start') {
       await userCRUD.createUserById(this.#userId)
   
-      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос! Для того, что бы остановить ответ, напши - "Стоп"')
+      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос! Для того, что бы остановить ответ, напиши - "Стоп"')
   
       return
     }
