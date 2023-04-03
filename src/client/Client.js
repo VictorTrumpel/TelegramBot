@@ -132,11 +132,12 @@ class Client {
       return null
     }
 
-    if (!user.hasAccess()) {
-      this.isAnswerInProcess = false
-      this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
-      return null
-    }
+    /** ОТКЛЮЧИЛ ОПЛАТУ **/
+    // if (!user.hasAccess()) {
+    //   this.isAnswerInProcess = false
+    //   this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
+    //   return null
+    // }
 
     return user
   }
