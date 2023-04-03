@@ -27,8 +27,6 @@ class GptStream {
         }),
         signal: this.#abortFetching.signal
       })
-
-      console.log('response :>> ', response)
   
       const reader = response.body.getReader()
   
