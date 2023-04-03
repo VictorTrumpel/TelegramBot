@@ -37,7 +37,7 @@ class Client {
     }
   }
 
-  handleEndMessage = () => {
+  handleEndMessage = () => {    
     if (this.#bufferMessage) {
       this.#userModel.pushMemory(this.#bufferMessage)
       userCRUD.updateUser(this.#userModel)

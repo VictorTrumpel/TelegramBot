@@ -27,6 +27,8 @@ class GptStream {
         }),
         signal: this.#abortFetching.signal
       })
+
+      console.log('response :>> ', response)
   
       const reader = response.body.getReader()
   
@@ -38,7 +40,7 @@ class GptStream {
           return 
         }
   
-        const jsonString = Buffer.from(value).toString('utf8').split('data: ')[1]
+        const jsonString = String(Buffer.from(value).toString('utf8').split('data: ')[1]) 
   
         if (jsonString.trim() === '[DONE]') {
           this.#eventEmitter.emit(this.#resolveStream)
@@ -53,6 +55,7 @@ class GptStream {
       }
     } catch (error) {
       console.error(error)
+      this.#eventEmitter.emit(this.#chunkMessageEvent, 'Не могу ответить на ваш вопрос :(')
       this.#eventEmitter.emit(this.#resolveStream)
       return 
     }

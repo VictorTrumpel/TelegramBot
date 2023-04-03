@@ -14,7 +14,7 @@ const getInvoice = (id) => {
     photo_height: 281, // Длина фото
     payload: { // Полезные данные счета-фактуры, определенные ботом, 1–128 байт. Это не будет отображаться пользователю, используйте его для своих внутренних процессов.
       unique_id: `${id}_${Number(new Date())}`,
-      provider_token: process.env.PROVIDER_TOKEN 
+      // provider_token: process.env.PROVIDER_TOKEN 
     }
   }
 

@@ -26,10 +26,6 @@ class GptConnection {
       connectionSemaphore.pushConnectionOpener(connectionId, openConnection)
     })
   }
-
-  getConnection() {
-
-  }
 }
 
 module.exports = GptConnection

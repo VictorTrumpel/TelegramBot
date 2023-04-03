@@ -2,12 +2,14 @@ const SubDate = require('../SubDate');
 
 const subDate = new SubDate()
 
+const TRIAL_MESSAGE_COUNT = process.env.TRIAL_MESSAGE_COUNT
+
 class User {
   #maxMemorySize = process.env.MAX_CONTEXT_SIZE
 
   constructor({ 
     id = 0, 
-    trialMessageCount = 5, 
+    trialMessageCount = TRIAL_MESSAGE_COUNT, 
     lastPaymentDate = '',
     lastQuestionDate = '',
     conversationMemory = ''
