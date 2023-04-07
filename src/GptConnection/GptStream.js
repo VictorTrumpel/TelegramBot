@@ -20,7 +20,7 @@ class GptStream {
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: process.env.GPT_MODEL,
           messages: [{ role: "user", content: message }],
           temperature: 0.7,
           stream: true
@@ -37,18 +37,20 @@ class GptStream {
           this.#eventEmitter.emit(this.#resolveStream)
           return 
         }
+
+        const bufferString = String(Buffer.from(value).toString('utf8'))
   
-        const jsonString = String(Buffer.from(value).toString('utf8').split('data: ')[1]) 
+        const jsonString = bufferString.split('data: ')[1]
   
         if (jsonString.trim() === '[DONE]') {
           this.#eventEmitter.emit(this.#resolveStream)
           return
         }
-  
+
         const parsedData = JSON.parse(jsonString)
     
         const chunkMessage = parsedData.choices?.[0]?.delta?.content
-  
+
         this.#eventEmitter.emit(this.#chunkMessageEvent, chunkMessage)
       }
     } catch (error) {

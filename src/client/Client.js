@@ -1,7 +1,7 @@
 const { userCRUD } = require('../database/UserCRUD');
 const { getInvoice } = require('../getInvoice');
-const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore')
-const GptConnection = require('../GptConnection/GptConnection')
+const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
+const GptConnection = require('../GptConnection/GptConnection');
 
 const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
 
@@ -133,11 +133,11 @@ class Client {
     }
 
     /** ОТКЛЮЧИЛ ОПЛАТУ **/
-    // if (!user.hasAccess()) {
-    //   this.isAnswerInProcess = false
-    //   this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
-    //   return null
-    // }
+    if (!user.hasAccess()) {
+      this.isAnswerInProcess = false
+      this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
+      return null
+    }
 
     return user
   }
