@@ -38,7 +38,7 @@ class GptStream {
           return 
         }
 
-        const bufferString = String(Buffer.from(value).toString('utf8'))
+        const bufferString = String(Buffer.from(value).toString('utf-8'))
   
         const jsonString = bufferString.split('data: ')[1]
   
