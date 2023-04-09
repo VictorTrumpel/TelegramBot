@@ -2,8 +2,7 @@ const { userCRUD } = require('../database/UserCRUD');
 const { getInvoice } = require('../getInvoice');
 const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
 const GptConnection = require('../GptConnection/GptConnection');
-
-const MAX_BUFFER_MESSAGE_LENGTH = process.env.MAX_BUFFER_MESSAGE_LENGTH 
+const MessageFormatter = require('./MessageFormatter');
 
 class Client {
   #text = ''
@@ -15,36 +14,31 @@ class Client {
 
   isAnswerInProcess = false
 
-  #bufferMessage = ''
+  #messageFormatter = new MessageFormatter()
 
-  handleMessage = (message = '') => {
-    this.#bufferMessage += message
-
-    if (this.#bufferMessage.length >= MAX_BUFFER_MESSAGE_LENGTH) {     
-      const { reminder, release } = this.releaseBuffer(this.#bufferMessage) 
-
-      this.#bufferMessage = reminder
-
-      this.#ctx.reply(release)
-      this.#userModel.pushMemory(release)
+  handleReply = (message = '') => {
+    
+    if (message.trim()) {
+      this.#ctx.reply(message)
+      this.#userModel.pushMemory(message)
       userCRUD.updateUser(this.#userModel)
-
-      // после того, как выполнится reply, если был статус 'typing' - он сбросится автоматически.
-      // Сетаем его заново, т.к. ответ продолжает генериться, но с дилеем, иначе TG его не подхватит.
-      setTimeout(() => {
-        this.#ctx.sendChatAction('typing')
-      }, 500)
     }
+
+    // после того, как выполнится reply, если был статус 'typing' - он сбросится автоматически.
+    // Сетаем его заново, т.к. ответ продолжает генериться, но с дилеем, иначе TG его не подхватит.
+    setTimeout(() => {
+      this.#ctx.sendChatAction('typing')
+    }, 500)
   }
 
   handleEndMessage = () => {    
-    if (this.#bufferMessage) {
-      this.#userModel.pushMemory(this.#bufferMessage)
-      userCRUD.updateUser(this.#userModel)
-      this.#ctx.reply(this.#bufferMessage)
-    }
+    const bufferMessage = this.#messageFormatter.getAndClearBuffer()
 
-    this.#bufferMessage = ''
+    if (bufferMessage.trim()) {
+      this.#userModel.pushMemory(bufferMessage)
+      userCRUD.updateUser(this.#userModel)
+      this.#ctx.reply(bufferMessage)
+    }
 
     this.isAnswerInProcess = false
   }
@@ -112,13 +106,19 @@ class Client {
 
     await userCRUD.updateUser(this.#userModel)
 
+    this.#messageFormatter.onReleaseMessage(
+      this.handleReply
+    )
+
     const gptStream = await new GptConnection().createConnection(this.#userId)
 
     const textQuery = `${this.#userModel.conversationMemory}\n${this.text}`
 
     gptStream.ask(textQuery)
 
-    gptStream.onChankMessage(this.handleMessage)
+    gptStream.onChankMessage((chunk) => {
+      this.#messageFormatter.pushMessageChunk(chunk)
+    })
 
     gptStream.onResolve(this.handleEndMessage)
   }
@@ -140,23 +140,6 @@ class Client {
     }
 
     return user
-  }
-
-  releaseBuffer(buffer = '') {
-    let releaseIdx = buffer.length - 1
-
-    for (let i = buffer.length - 1; i >= 0; i--) {
-      const char = buffer[i]
-      if (char === `\n` || char === ' ' || char === '   ') {
-        releaseIdx = i
-        break
-      }
-    }
-
-    const reminder = buffer.slice(releaseIdx)
-    const release  = buffer.slice(0, releaseIdx)
-
-    return { reminder, release } 
   }
 }
 

@@ -16,7 +16,7 @@ app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html') })
 app.post('/ask', async (req, res) => {
   const file = fs.readFileSync(`${__dirname}/responses/1.txt`, 'utf-8')
 
-  const paragArray = file.split('\n')
+  const paragArray = file.split('\n').map((str) => str + '\n')
 
   const wait = () => new Promise((res) => setTimeout(() => res(), 10)) 
 
@@ -24,12 +24,14 @@ app.post('/ask', async (req, res) => {
     const parag = paragArray[i]
 
     for (let j = 0; j < parag.length; j++) {
-      const char = parag[j]
+      const char = parag[j] 
 
-      const jsonString = 
-        `data: {"choices":[{"delta":{"content":"${char}"},"index":0,"finish_reason":null}]}` 
+      const data = { choices: [{ delta: { content: char } }] } 
 
-      res.write(jsonString)
+      const strData = JSON.stringify(data)
+      const jsonStr = 'data: ' + strData
+
+      res.write(jsonStr)
 
       await wait()
     }
