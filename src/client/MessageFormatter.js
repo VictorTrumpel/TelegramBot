@@ -9,9 +9,6 @@ class MessageFormatter {
 
   #releaseMessageEvent = 'release'
 
-  #commonBuffer = ''
-  #formatBuffer = ''
-
   getAndClearBuffer() {
     const buffer = this.#bufferMessage
     this.#bufferMessage = ''
@@ -35,7 +32,7 @@ class MessageFormatter {
 
     if (bufferRows.length === 1) {
       let releaseIdx = 0
-      
+
       for (let i = this.#bufferMessage.length - 1; i >= 0; i--) {
         const char = this.#bufferMessage[i]
         if (char === ' ') {
