@@ -17,7 +17,10 @@ bot.on('message', async (ctx) => {
       reply_markup: {
         inline_keyboard: [[{
           text: 'gdsgsd',
-          web_app: { url: process.env.PAYMENT_URL },
+          web_app: { 
+            url: process.env.PAYMENT_URL,
+            init_data: 'gdsgds'
+          },
         }]]
       }
     }

@@ -15,19 +15,7 @@
 
 <script>
 
-(async () => {
-	const res = await createPayment({ cost: 2 })
-
-	const checkout = new window.YooMoneyCheckoutWidget({
-		confirmation_token: res.confirmation.confirmation_token, //Токен, который перед проведением оплаты нужно получить от ЮKassa
-		return_url: 'https://yookassa.ru/', //Ссылка на страницу завершения оплаты, это может быть любая ваша страница
-		error_callback: function(error) {
-			console.log(error)
-		}
-	});
-
-	checkout.render('payment-form');
-})()
+console.log(window.Telegram.WebApp)
 
 </script>
 
