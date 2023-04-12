@@ -4,7 +4,7 @@ const createPayment = async ({ cost = 2 }) => {
     headers: {
       'Idempotence-Key': `${Math.random() * Math.random() * Math.random()}`,
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + window.btoa(`208465:${process.env.YOO_CASSA}`)
+      'Authorization': 'Basic ' + window.btoa(`208465:live_1rt1LgbcZhjkie_LMuKrz3Nuz4Dkjqz8g6iZdf9k5BM`)
     },
     body: JSON.stringify({
       amount: {
