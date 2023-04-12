@@ -16,7 +16,7 @@
 <script>
 
 (async () => {
-	const res = await createPayment()
+	const res = await createPayment({ cost: 2 })
 
 	const checkout = new window.YooMoneyCheckoutWidget({
 		confirmation_token: res.confirmation.confirmation_token, //Токен, который перед проведением оплаты нужно получить от ЮKassa
