@@ -6,46 +6,30 @@
 <body>
 
 <h1>Сервер для тестирования отображения ответов чат-бота</h1>
-  
-<button id="button">Сделать POST запрос</button>
 
+<div id="payment-form"></div>
+
+<script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
+<script src="/interface/payment.js"></script>
 
 <script>
 
-const postButton = document.querySelector('#button')
+(async () => {
+	const res = await createPayment()
 
-postButton.addEventListener('click', async () => {
-	const response = await fetch(`${window.origin}/ask`, { 
-		method: 'POST',
-		headers: {
-			'Content-Type': 'text/plain',
-    	'Transfer-Encoding': 'chunked'
+	const checkout = new window.YooMoneyCheckoutWidget({
+		confirmation_token: res.confirmation.confirmation_token, //Токен, который перед проведением оплаты нужно получить от ЮKassa
+		return_url: 'https://yookassa.ru/', //Ссылка на страницу завершения оплаты, это может быть любая ваша страница
+		error_callback: function(error) {
+			console.log(error)
 		}
-	})
+	});
 
-	const reader = response.body.getReader()
+	checkout.render('payment-form');
 
-	while (true) {
-		const { value } = await reader.read()
-
-		if (!value) {
-			return 
-		}
-
-		const bufferString = new TextDecoder("utf-8").decode(value)
-
-		const jsonString = bufferString.split('data: ')[1]
-
-		const parsedData = JSON.parse(jsonString)
-
-		const chunkMessage = parsedData.choices?.[0]?.delta?.content
-
-		console.log('chunkMessage :>> ', chunkMessage)
-	}
-})
-
-
+})()
 
 </script>
+
 </body>
 </html>

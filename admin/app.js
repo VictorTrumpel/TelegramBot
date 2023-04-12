@@ -11,8 +11,6 @@ const fs = require('fs');
 
 const app = express()
 
-app.get('/', (req, res) => { res.sendFile(__dirname + '/index.html') })
-
 app.post('/ask', async (req, res) => {
   const file = fs.readFileSync(`${__dirname}/responses/1.txt`, 'utf-8')
 
@@ -40,6 +38,6 @@ app.post('/ask', async (req, res) => {
   res.end()
 })
 
-app.listen(8080, () => {
-  console.log('Сервер нейронки для разработки запущен на порту 8080');
+app.listen(8895, () => {
+  console.log('Сервер нейронки для разработки запущен на порту 8895');
 });
