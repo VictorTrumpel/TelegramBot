@@ -1,14 +1,14 @@
-const createPayment = async ({ cost = 2 }) => {
+const createPaymentToken = async () => {
   const response = await fetch('https://api.yookassa.ru/v3/payments', {
     method: 'POST',
     headers: {
       'Idempotence-Key': `${Math.random() * Math.random() * Math.random()}`,
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + window.btoa(`208465:live_1rt1LgbcZhjkie_LMuKrz3Nuz4Dkjqz8g6iZdf9k5BM`)
+      'Authorization': 'Basic ' + btoa(`208465:${process.env.YOO_CASSA}`)
     },
     body: JSON.stringify({
       amount: {
-        value: `${cost}.00`,
+        value: `2.00`,
         currency: "RUB"
       },
       confirmation: {
@@ -26,7 +26,7 @@ const createPayment = async ({ cost = 2 }) => {
         items: [{
           description: 'Доступ к чат боту',
           amount: {
-            value: `${cost}.00`,
+            value: `2.00`,
             currency: 'RUB'
           },
           vat_code: 1,
@@ -39,3 +39,4 @@ const createPayment = async ({ cost = 2 }) => {
   return await response.json()
 }
 
+module.exports.createPaymentToken = createPaymentToken

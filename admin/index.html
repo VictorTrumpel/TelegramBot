@@ -5,29 +5,13 @@
 </head>
 <body>
 
-<h1>Сервер для тестирования отображения ответов чат-бота</h1>
+<h1>АМИНСКАЯ ПАНЕЛЬ</h1>
 
 <div id="payment-form"></div>
 
 <script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
-<script src="/interface/payment.js"></script>
 
 <script>
-
-(async () => {
-	const res = await createPayment()
-
-	const checkout = new window.YooMoneyCheckoutWidget({
-		confirmation_token: res.confirmation.confirmation_token, //Токен, который перед проведением оплаты нужно получить от ЮKassa
-		return_url: 'https://yookassa.ru/', //Ссылка на страницу завершения оплаты, это может быть любая ваша страница
-		error_callback: function(error) {
-			console.log(error)
-		}
-	});
-
-	checkout.render('payment-form');
-
-})()
 
 </script>
 
