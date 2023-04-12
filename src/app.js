@@ -17,7 +17,7 @@ bot.on('message', async (ctx) => {
       reply_markup: {
         inline_keyboard: [[{
           text: 'gdsgsd',
-          web_app: { url: 'https://www.youtube.com/watch?v=MzO-0IYkZMU&t=71s' },
+          web_app: { url: process.env.PAYMENT_URL },
         }]]
       }
     }

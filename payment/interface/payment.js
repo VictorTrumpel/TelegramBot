@@ -1,21 +1,21 @@
-const createPayment = async () => {
+const createPayment = async ({ cost = 2 }) => {
   const response = await fetch('https://api.yookassa.ru/v3/payments', {
     method: 'POST',
     headers: {
       'Idempotence-Key': `${Math.random() * Math.random() * Math.random()}`,
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + window.btoa('208465:live_1rt1LgbcZhjkie_LMuKrz3Nuz4Dkjqz8g6iZdf9k5BM')
+      'Authorization': 'Basic ' + window.btoa(`208465:${process.env.YOO_CASSA}`)
     },
     body: JSON.stringify({
       amount: {
-        value: "2.00",
+        value: `${cost}.00`,
         currency: "RUB"
       },
       confirmation: {
         type: "embedded"
       },
       capture: true,
-      description: "Заказ №72",
+      description: "Оплата чат-бота",
       receipt: {
         customer: {
           full_name: 'Трумпель Виктор Дмитриевич',
@@ -26,7 +26,7 @@ const createPayment = async () => {
         items: [{
           description: 'Доступ к чат боту',
           amount: {
-            value: '2.00',
+            value: `${cost}.00`,
             currency: 'RUB'
           },
           vat_code: 1,
