@@ -2,44 +2,52 @@
 
 require("dotenv").config();
 const { Telegraf } = require('telegraf');
-const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { createPaymentToken } = require('./createPaymentToken');
 const cors = require('cors');
 const Client = require('./client/Client');
+const express = require('express');
+const https = require("https");
+const PaymentSet = require('./PaymentSet');
 
+/** TELEGRAM */
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
-
-const paymentServer = express()
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true))
 
-bot.on('message', async (ctx) => {
-  return ctx.reply(
-    'random example',
-    {
-      reply_markup: {
-        inline_keyboard: [[{
-          text: 'Перейти для оплаты',
-          url: `${process.env.PAYMENT_URL}412412`,
-        }]]
-      }
-    }
-  )
+bot.on('message', async (ctx) => new Client(ctx))
 
+bot.launch()
 
-  // new Client(ctx)
-})
+/** WEB SERVER */
+
+const paymentServer = express()
+
+https
+  .createServer(paymentServer)
+  .listen(443, ()=>{
+    console.log('server is runing at port 4000')
+  });
 
 paymentServer.use(cors())
 
-paymentServer.get('/get_payment_token', async (req, res) => {
-  const token = await createPaymentToken()
- 
-  return res.json(token)
+paymentServer.get('/payment/:id', async (req, res) => 
+  res.sendFile(__dirname + '/payment/index.html')
+)
+
+paymentServer.get('/get_payment_token/:id', async (req, res) => {
+  const userId = req.url.split('/')[2]
+
+  if (PaymentSet.has(userId)) {
+    const token = await createPaymentToken(uuidv4())
+
+    return res.json(token)
+  }
+
+  return res.json({ error: 'Вернитесь в бота' })
 })
 
-paymentServer.listen(8000, () => {
-  console.log('Сервер оплаты развернут на 8000 порту');
-});
-
-bot.launch()
+paymentServer.post('/success_payment', (req, res) => {
+  
+  console.log('req :>> ', req)
+})

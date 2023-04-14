@@ -3,6 +3,7 @@ const { getInvoice } = require('../getInvoice');
 const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
 const GptConnection = require('../GptConnection/GptConnection');
 const MessageFormatter = require('./MessageFormatter');
+const PaymentSet = require('../PaymentSet');
 
 class Client {
   #text = ''
@@ -135,7 +136,18 @@ class Client {
     /** ОТКЛЮЧИЛ ОПЛАТУ **/
     if (!user.hasAccess()) {
       this.isAnswerInProcess = false
-      this.#ctx.replyWithInvoice(getInvoice(this.#ctx.from.id))
+
+      PaymentSet.add(`${this.#userId}`)
+
+      this.#ctx.reply('random example', {
+        reply_markup: {
+          inline_keyboard: [[{
+            text: 'Перейти для оплаты',
+            url: `${process.env.DOMEN_ADDRESS}/payment/${this.#userId}`,
+          }]]
+        }
+      })
+
       return null
     }
 
