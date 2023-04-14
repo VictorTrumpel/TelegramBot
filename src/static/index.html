@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div id="payment-form"></div>
+
+<script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
+<script>
+
+(async () => {
+
+const { token, expiredTime } = await getPaymentToken()
+
+setTimeout(() => {
+	document.querySelector('#payment-form').remove()
+}, Number(expiredTime) - 1000)
+
+const checkout = new window.YooMoneyCheckoutWidget({
+	confirmation_token: token.confirmation.confirmation_token,
+	test: true,	
+	error_callback: function(error) { 
+		console.log('error :>> ', error)
+	}
+})
+
+checkout.on('success', async () => {
+	await fetch(`/success_payment`, {
+		method: 'POST',
+		headers: {	
+			'Content-Type': 'application/json;charset=utf-8'
+		},
+		body: JSON.stringify({
+			userId: getUserId(),
+			paymentId: token.id
+		})
+	})
+})
+
+checkout.render('payment-form');
+
+function getUserId() {
+	const pathName = window.location.pathname
+	return pathName.split('/')[1]
+}
+
+async function getPaymentToken() {
+	const userId = getUserId()
+
+	const res = await fetch(`/get_payment_token/${userId}`)
+
+	const token = await res.json()
+
+	return token
+}
+})()
+
+</script>
+</body>
+</html>

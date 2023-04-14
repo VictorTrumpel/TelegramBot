@@ -1,9 +1,8 @@
 const { userCRUD } = require('../database/UserCRUD');
-const { getInvoice } = require('../getInvoice');
 const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
+const { invoiceCup } = require('../payment/InvoicesCup');
 const GptConnection = require('../GptConnection/GptConnection');
 const MessageFormatter = require('./MessageFormatter');
-const PaymentSet = require('../PaymentSet');
 
 class Client {
   #text = ''
@@ -16,6 +15,16 @@ class Client {
   isAnswerInProcess = false
 
   #messageFormatter = new MessageFormatter()
+
+  handleSuccesPayment = async () => {
+    const user = await userCRUD.getUserById(this.#userId)
+
+    user.updateLastPayment()
+
+    await userCRUD.updateUser(user)
+
+    this.#ctx.reply('Оплата прошла успешно')
+  }
 
   handleReply = (message = '') => {
     
@@ -137,13 +146,13 @@ class Client {
     if (!user.hasAccess()) {
       this.isAnswerInProcess = false
 
-      PaymentSet.add(`${this.#userId}`)
+      invoiceCup.createInvoice(this.#userId, this.handleSuccesPayment)
 
       this.#ctx.reply('random example', {
         reply_markup: {
           inline_keyboard: [[{
             text: 'Перейти для оплаты',
-            url: `${process.env.DOMEN_ADDRESS}/payment/${this.#userId}`,
+            url: `${process.env.PAYMENT_URL}/${this.#userId}`,
           }]]
         }
       })

@@ -34,6 +34,15 @@ class SubDate {
     return days <= this.#SUB_DAYS
   }
 
+  getBetweenMS(start = '', end = '') {
+    const date1 = new Date(start)
+    const date2 = new Date(end)
+
+    const differenceMS = date1 - date2
+
+    return differenceMS
+  }
+
   getBetweenMinutes(start = '', end = '') {
     const date1 = new Date(start)
     const date2 = new Date(end)
