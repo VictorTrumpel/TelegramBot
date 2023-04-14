@@ -8,6 +8,7 @@ const cors = require('cors');
 const Client = require('./client/Client');
 const express = require('express');
 const https = require("https");
+const fs = require('fs');
 const PaymentSet = require('./PaymentSet');
 
 /** TELEGRAM */
@@ -21,13 +22,9 @@ bot.launch()
 
 /** WEB SERVER */
 
-const paymentServer = express()
+const isNginx = process.argv[2] === 'nginx'
 
-https
-  .createServer(paymentServer)
-  .listen(443, ()=>{
-    console.log('server is runing at port 4000')
-  });
+const paymentServer = express()
 
 paymentServer.use(cors())
 
@@ -48,6 +45,20 @@ paymentServer.get('/get_payment_token/:id', async (req, res) => {
 })
 
 paymentServer.post('/success_payment', (req, res) => {
-  
   console.log('req :>> ', req)
 })
+
+if (isNginx) {
+  https
+    .createServer({
+      key: fs.readFileSync('/etc/letsencrypt/live/oracle-bot-payment.ru/fullchain.pem'),
+      cert: fs.readFileSync('/etc/letsencrypt/live/oracle-bot-payment.ru/privkey.pem'),
+    }, paymentServer)
+    .listen(4000, () => {
+      console.log("serever is runing at port 4000");
+    });
+} else {
+  paymentServer.listen(4000, () => {
+    console.log("serever is runing at port 4000");
+  })
+}
