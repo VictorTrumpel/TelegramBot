@@ -79,17 +79,9 @@ class Client {
       return
     }
 
-    if (this.#ctx.update.message.successful_payment) {
-      const user = await userCRUD.getUserById(this.#userId)
-  
-      user.updateLastPayment()
-  
-      await userCRUD.updateUser(user)
-      
-      return this.#ctx.reply("Оплата прошла успешно!")
-    }
-
     this.#userModel = await this.autentificateUser(this.#userId)
+
+    console.log('this.#userModel :>> ', this.#userModel)
 
     if (!this.#userModel)
       return
@@ -149,9 +141,9 @@ class Client {
 
       invoiceCup.createInvoice(this.#userId, this.handleSuccesPayment)
 
-      this.#ctx.replyWithMarkdown(PaymentMessage)
+      await this.#ctx.replyWithMarkdown(PaymentMessage)
 
-      this.#ctx.replyWithPhoto(CheckImage, {
+      await this.#ctx.replyWithPhoto(CheckImage, {
         reply_markup: {
           inline_keyboard: [[{
             text: 'Перейти для оплаты',

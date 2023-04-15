@@ -67,6 +67,17 @@ class User {
   }
 
   hasAccess() {
+    const needInTrialMessages = subDate.getBetweenDays(
+      this.lastQuestionDate,
+      new Date(), 
+    ) >= 1
+
+    if (needInTrialMessages) {
+      this._trialMessageCount = process.env.TRIAL_MESSAGE_COUNT
+    }
+
+    console.log('needInTrialMessages :>> ', needInTrialMessages)
+
     if (this.trialMessageCount > 0) 
       return true
 
