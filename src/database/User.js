@@ -76,8 +76,6 @@ class User {
       this._trialMessageCount = process.env.TRIAL_MESSAGE_COUNT
     }
 
-    console.log('needInTrialMessages :>> ', needInTrialMessages)
-
     if (this.trialMessageCount > 0) 
       return true
 

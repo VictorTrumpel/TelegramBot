@@ -81,8 +81,6 @@ class Client {
 
     this.#userModel = await this.autentificateUser(this.#userId)
 
-    console.log('this.#userModel :>> ', this.#userModel)
-
     if (!this.#userModel)
       return
 
