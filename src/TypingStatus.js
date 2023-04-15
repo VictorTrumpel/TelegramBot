@@ -4,6 +4,8 @@ class TypingStatus {
 
   #ctx = {}
 
+  #timer = null
+
   static instance = null
 
   constructor(ctx = {}) {
@@ -20,11 +22,15 @@ class TypingStatus {
     if (this.action === 'typing')
       return
 
+    if (this.#timer) {
+      clearTimeout(this.#timer)
+    }
+
     this.action = 'typing'
 
     this.#ctx.sendChatAction('typing')
 
-    setTimeout(() => {
+    this.#timer = setTimeout(() => {
       this.action = ''
     }, 5000)
   }
