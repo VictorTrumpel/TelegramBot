@@ -1,6 +1,7 @@
 const { userCRUD } = require('../database/UserCRUD');
 const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
 const { invoiceCup } = require('../payment/InvoicesCup');
+const { PaymentMessage, CheckImage } = require('../PaymentMessage');
 const GptConnection = require('../GptConnection/GptConnection');
 const MessageFormatter = require('./MessageFormatter');
 
@@ -23,13 +24,13 @@ class Client {
 
     await userCRUD.updateUser(user)
 
-    this.#ctx.reply('Оплата прошла успешно')
+    this.#ctx.reply('Оплата прошла успешно ✅')
   }
 
   handleReply = (message = '') => {
     
     if (message.trim()) {
-      this.#ctx.reply(message)
+      this.#ctx.replyWithMarkdown(message)
       this.#userModel.pushMemory(message)
       userCRUD.updateUser(this.#userModel)
     }
@@ -142,19 +143,23 @@ class Client {
       return null
     }
 
-    /** ОТКЛЮЧИЛ ОПЛАТУ **/
+    /** ОПЛАТА **/
     if (!user.hasAccess()) {
       this.isAnswerInProcess = false
 
       invoiceCup.createInvoice(this.#userId, this.handleSuccesPayment)
 
-      this.#ctx.reply('random example', {
+      this.#ctx.replyWithMarkdown(PaymentMessage)
+
+      this.#ctx.replyWithPhoto(CheckImage, {
         reply_markup: {
           inline_keyboard: [[{
             text: 'Перейти для оплаты',
             url: `${process.env.PAYMENT_URL}/${this.#userId}`,
           }]]
-        }
+        }, 
+        caption: `Оплатите счет в течении *${Number(process.env.INVOIC_LIFETIME_MS) / 60000 } минут*`,
+        parse_mode: 'MarkdownV2'
       })
 
       return null
