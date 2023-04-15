@@ -4,6 +4,7 @@ const { invoiceCup } = require('../payment/InvoicesCup');
 const { PaymentMessage, CheckImage, HelloMessage } = require('../ScriptMessage');
 const GptConnection = require('../GptConnection/GptConnection');
 const MessageFormatter = require('./MessageFormatter');
+const TypingStatus = require('../TypingStatus');
 
 class Client {
   #text = ''
@@ -12,6 +13,8 @@ class Client {
   #ctx = {}
 
   #userModel = null
+
+  #typingStatus = null
 
   isAnswerInProcess = false
 
@@ -27,10 +30,10 @@ class Client {
     this.#ctx.reply('Оплата прошла успешно ✅')
   }
 
-  handleReply = (message = '') => {
+  handleReply = async (message = '') => {
     
     if (message.trim()) {
-      this.#ctx.replyWithMarkdown(message)
+      await this.#ctx.reply(message)
       this.#userModel.pushMemory(message)
       userCRUD.updateUser(this.#userModel)
     }
@@ -38,7 +41,7 @@ class Client {
     // после того, как выполнится reply, если был статус 'typing' - он сбросится автоматически.
     // Сетаем его заново, т.к. ответ продолжает генериться, но с дилеем, иначе TG его не подхватит.
     setTimeout(() => {
-      this.#ctx.sendChatAction('typing')
+      this.#typingStatus.sendAction()
     }, 500)
   }
 
@@ -63,13 +66,15 @@ class Client {
 
     this.#ctx = context
 
+    this.#typingStatus = new TypingStatus()
+
     this.init()
   }
 
   async init() {
     this.isAnswerInProcess = true
 
-    this.#ctx.sendChatAction('typing')
+    this.#typingStatus.sendAction()
 
     if (this.#text === '/start') {
       await userCRUD.createUserById(this.#userId)
@@ -95,7 +100,7 @@ class Client {
       this.#ctx.reply('Отправте "Стоп" для того, что бы остановить ответ.')
 
       setTimeout(() => {
-        this.#ctx.sendChatAction('typing')
+        this.#typingStatus.sendAction()
       }, 500)
 
       return

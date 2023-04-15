@@ -8,6 +8,7 @@ const { getPaymentInfo } = require('./cassa/getPaymentInfo');
 const { invoiceCup } = require('./payment/InvoicesCup');
 const cors = require('cors');
 const Client = require('./client/Client');
+const TypingStatus = require('./TypingStatus');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -16,7 +17,14 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true))
 
-bot.on('message', async (ctx) => new Client(ctx))
+bot.on('message', async (ctx) => {
+  try {
+    new TypingStatus(ctx)
+    new Client(ctx)
+  } catch {
+    ctx.reply('Попроси меня продолжить, если ответ недостаточно полный')
+  }
+})
 
 bot.launch()
 
