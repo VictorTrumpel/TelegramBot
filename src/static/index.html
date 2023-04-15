@@ -2,8 +2,20 @@
 <html>
 <head>
     <meta charset="UTF-8">
+		<style>
+			* {
+				font-family: Arial, Helvetica, sans-serif
+			}
+
+			#header-info {
+				width: 100%;
+				text-align: center;
+			}
+		</style>
 </head>
 <body>
+
+<h1 id="header-info">Оплата счета</h1>
 
 <div id="payment-form"></div>
 
@@ -12,10 +24,16 @@
 
 (async () => {
 
-const { token, expiredTime } = await getPaymentToken()
+const { token, expiredTime, error } = await getPaymentToken()
+
+if (error) {
+	document.querySelector('#header-info').innerText = error
+	return
+}
 
 setTimeout(() => {
 	document.querySelector('#payment-form').remove()
+	document.querySelector('#header-info').innerText = 'Время оплаты истекло'
 }, Number(expiredTime) - 1000)
 
 const checkout = new window.YooMoneyCheckoutWidget({
@@ -27,7 +45,7 @@ const checkout = new window.YooMoneyCheckoutWidget({
 })
 
 checkout.on('success', async () => {
-	await fetch(`/success_payment`, {
+	const response = await fetch(`/success_payment`, {
 		method: 'POST',
 		headers: {	
 			'Content-Type': 'application/json;charset=utf-8'
@@ -37,6 +55,20 @@ checkout.on('success', async () => {
 			paymentId: token.id
 		})
 	})
+
+	const { message, error } = await response.json()
+
+	document.querySelector('#payment-form').remove()
+
+	if (message) {
+		document.querySelector('#header-info').innerText = message
+		return
+	}
+
+	if (error) {
+		document.querySelector('#header-info').innerText = error
+		return
+	}
 })
 
 checkout.render('payment-form');

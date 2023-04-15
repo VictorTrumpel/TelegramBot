@@ -60,13 +60,12 @@ paymentServer.post('/success_payment', async (req, res) => {
     return res.json({ error: 'Нет информации о счете, вернитесь в бота.' })
   }
 
-  if (!paymentInfo.paid) {
-    return res.json({ error: 'Счет не оплачен.' })
+  if (paymentInfo.paid) {
+    invoiceCup.resolveInvoice(userId)
+    return res.json({ message: 'Оплата прошла успешно. Вернитесь в бота.' })
   }
 
-  invoiceCup.resolveInvoice(userId)
-
-  res.json({ message: 'Оплата прошла успешно. Вернитесь в бота.' })
+  return res.json({ error: 'Счет не оплачен.' })
 })
 
 paymentServer.listen(8080, () => {
