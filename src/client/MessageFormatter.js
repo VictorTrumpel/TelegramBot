@@ -33,7 +33,7 @@ class MessageFormatter {
 
     for (let i = buffer.length - 1; i >= 0; i--) {
       const char = buffer[i]
-      if (char === `\n` || char === '   ') {
+      if (char === `\n` || char === ' ') {
         releaseIdx = i
         break
       }
