@@ -1,7 +1,7 @@
 const { userCRUD } = require('../database/UserCRUD');
 const { connectionSemaphore } = require('../GptConnection/ConnectionSemaphore');
 const { invoiceCup } = require('../payment/InvoicesCup');
-const { PaymentMessage, CheckImage } = require('../PaymentMessage');
+const { PaymentMessage, CheckImage, HelloMessage } = require('../ScriptMessage');
 const GptConnection = require('../GptConnection/GptConnection');
 const MessageFormatter = require('./MessageFormatter');
 
@@ -74,7 +74,7 @@ class Client {
     if (this.#text === '/start') {
       await userCRUD.createUserById(this.#userId)
   
-      await this.#ctx.reply('Привет! Можешь задавать любой интересующий тебя вопрос! Для того, что бы остановить ответ, напиши - "Стоп"')
+      await this.#ctx.replyWithMarkdown(HelloMessage)
   
       return
     }
