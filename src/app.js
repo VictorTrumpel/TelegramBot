@@ -11,6 +11,7 @@ const Client = require('./client/Client');
 const TypingStatus = require('./TypingStatus');
 const express = require('express');
 const bodyParser = require('body-parser');
+const { userCRUD } = require('./database/UserCRUD');
 
 /** TELEGRAM */
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
@@ -67,13 +68,25 @@ paymentServer.post('/success_payment', async (req, res) => {
   } catch {
     return res.json({ error: 'Нет информации о счете, вернитесь в бота.' })
   }
-
-  if (paymentInfo.paid) {
-    invoiceCup.resolveInvoice(userId)
-    return res.json({ message: 'Оплата прошла успешно. Вернитесь в бота.' })
+ 
+  try {
+    if (paymentInfo.paid) {
+      const user = await userCRUD.getUserById(userId)
+  
+      user.updateLastPayment()
+  
+      await userCRUD.updateUser(user)
+  
+      invoiceCup.resolveInvoice(userId)
+  
+      return res.json({ message: 'Оплата прошла успешно. Можете продолжить общение с ботом.' })
+    }
+  } catch {
+    return res.json({ error: 'Пользователя не существует. Если возникла ошибка, напишите нам на почту: oracle.gpt.bot@gmail.com' })
   }
+  
 
-  return res.json({ error: 'Счет не оплачен.' })
+  return res.json({ error: 'Счет не оплачен. Если возникла ошибка, напишите нам на почту: oracle.gpt.bot@gmail.com' })
 })
 
 paymentServer.listen(8080, () => {

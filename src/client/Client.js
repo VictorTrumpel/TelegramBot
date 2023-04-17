@@ -21,12 +21,6 @@ class Client {
   #messageFormatter = new MessageFormatter()
 
   handleSuccesPayment = async () => {
-    const user = await userCRUD.getUserById(this.#userId)
-
-    user.updateLastPayment()
-
-    await userCRUD.updateUser(user)
-
     this.#ctx.reply('Оплата прошла успешно ✅')
   }
 
