@@ -1,4 +1,4 @@
-const SubDate = require('../SubDate');
+const SubDate = require('../../SubDate');
 
 const subDate = new SubDate()
 

@@ -5,13 +5,14 @@ const { Telegraf } = require('telegraf');
 const { v4: uuidv4 } = require('uuid');
 const { createPaymentToken } = require('./cassa/createPaymentToken');
 const { getPaymentInfo } = require('./cassa/getPaymentInfo'); 
-const { invoiceCup } = require('./payment/InvoicesCup');
+const { userCRUD } = require('./database/user/UserCRUD');
+const { invoiceCRUD } = require('./database/invoice/InvoiceCRUD');
+const Invoice = require('./database/invoice/Invoice');
 const cors = require('cors');
-const Client = require('./client/Client');
+const Client = require('./tg-client/Client');
 const TypingStatus = require('./TypingStatus');
 const express = require('express');
 const bodyParser = require('body-parser');
-const { userCRUD } = require('./database/UserCRUD');
 
 /** TELEGRAM */
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
@@ -25,6 +26,17 @@ bot.on('message', async (ctx) => {
   } catch {
     ctx.reply('Попроси меня продолжить, если ответ недостаточно полный')
   }
+})
+
+bot.action('check_payment', async (ctx) => {
+  const userId = ctx.update.callback_query.from.id
+
+  const invoiceInfo = await invoiceCRUD.getInvoiceByOwnerId(Number(userId))
+
+  if (invoiceInfo?.isPaid === true)
+    return ctx.reply('Оплата прошла успешно ✅')
+  else 
+    return ctx.reply('Счет не оплачен ❌')
 })
 
 bot.launch()
@@ -49,7 +61,9 @@ paymentServer.get('/:id', async (_, res) =>
 paymentServer.get('/get_payment_token/:id', async (req, res) => {
   const userId = req.url.split('/')[2]
 
-  if (invoiceCup.hasInvoice(userId)) {
+  const invoiceInfo = await invoiceCRUD.getInvoiceByOwnerId(Number(userId))
+
+  if (invoiceInfo?.isPaid === false) {
     const token = await createPaymentToken(uuidv4())
 
     return res.json({ token, expiredTime: process.env.INVOIC_LIFETIME_MS })
@@ -77,14 +91,15 @@ paymentServer.post('/success_payment', async (req, res) => {
   
       await userCRUD.updateUser(user)
   
-      invoiceCup.resolveInvoice(userId)
+      const paidInvoice = new Invoice({ invoiceOwnerId: userId, isPaid: true })
+
+      invoiceCRUD.updateInvoice(paidInvoice)
   
       return res.json({ message: 'Оплата прошла успешно. Можете продолжить общение с ботом.' })
     }
   } catch {
     return res.json({ error: 'Пользователя не существует. Если возникла ошибка, напишите нам на почту: oracle.gpt.bot@gmail.com' })
   }
-  
 
   return res.json({ error: 'Счет не оплачен. Если возникла ошибка, напишите нам на почту: oracle.gpt.bot@gmail.com' })
 })

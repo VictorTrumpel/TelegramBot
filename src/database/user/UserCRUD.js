@@ -1,15 +1,10 @@
 const User = require('./User');
-const { initializeApp } = require('firebase/app');
-const { firebaseConfig } = require('./firebaseConfig');
 const { 
-  getFirestore, 
   setDoc, 
   doc, 
   getDoc 
-} = require('firebase/firestore/lite')
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+} = require('firebase/firestore/lite');
+const { db } = require('../db');
 
 class UserCRUD {
   #collectionName = "users"
