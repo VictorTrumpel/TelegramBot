@@ -58,6 +58,18 @@ paymentServer.get('/:id', async (_, res) =>
   res.sendFile(__dirname + '/static/index.html')
 )
 
+paymentServer.get('/static/index.css', async (_, res) => 
+  res.sendFile(__dirname + '/static/index.css')
+)
+
+paymentServer.get('/static/assets/bg.png', async (_, res) => 
+  res.sendFile(__dirname + '/static/assets/bg.png')
+)
+
+paymentServer.get('/static/Payment.js', async (_, res) => 
+  res.sendFile(__dirname + '/static/Payment.js')
+)
+
 paymentServer.get('/get_payment_token/:id', async (req, res) => {
   const userId = req.url.split('/')[2]
 

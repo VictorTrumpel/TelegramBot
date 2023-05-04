@@ -1,94 +1,22 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
 <head>
-    <meta charset="UTF-8">
-		<style>
-			* {
-				font-family: Arial, Helvetica, sans-serif
-			}
-
-			#header-info {
-				width: 100%;
-				text-align: center;
-			}
-		</style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/static/index.css" type="text/css">
 </head>
 <body>
 
-<h1 id="header-info">Оплата счета</h1>
+<section class="main-content">
 
-<div id="payment-form"></div>
+	<h1 class="header-info" id="header-info">Оплата счета</h1>
+
+	<div class="payment-form" id="payment-form"></div>
+
+</section>
 
 <script src="https://yookassa.ru/checkout-widget/v1/checkout-widget.js"></script>
-<script>
+<script src="/static/Payment.js"></script>
 
-(async () => {
-
-const { token, expiredTime, error } = await getPaymentToken()
-
-if (error) {
-	document.querySelector('#header-info').innerText = error
-	return
-}
-
-setTimeout(() => {
-	document.querySelector('#payment-form').remove()
-	document.querySelector('#header-info').innerText = 'Время оплаты истекло'
-}, Number(expiredTime) - 1000)
-
-const checkout = new window.YooMoneyCheckoutWidget({
-	confirmation_token: token.confirmation.confirmation_token,
-	test: true,	
-	error_callback: function(error) { 
-		console.log('error :>> ', error)
-	}
-})
-
-checkout.on('success', async () => {
-	const response = await fetch(`/success_payment`, {
-		method: 'POST',
-		headers: {	
-			'Content-Type': 'application/json;charset=utf-8'
-		},
-		body: JSON.stringify({
-			userId: getUserId(),
-			paymentId: token.id
-		})
-	})
-
-	const { message, error } = await response.json()
-
-	document.querySelector('#payment-form').remove()
-
-	if (message) {
-		document.querySelector('#header-info').innerText = message
-		return
-	}
-
-	if (error) {
-		document.querySelector('#header-info').innerText = error
-		return
-	}
-})
-
-checkout.render('payment-form');
-
-function getUserId() {
-	const pathName = window.location.pathname
-	return pathName.split('/')[1]
-}
-
-async function getPaymentToken() {
-	const userId = getUserId()
-
-	const res = await fetch(`/get_payment_token/${userId}`)
-
-	const token = await res.json()
-
-	return token
-}
-})()
-
-</script>
 </body>
 </html>
